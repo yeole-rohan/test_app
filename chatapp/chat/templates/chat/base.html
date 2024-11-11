@@ -1,0 +1,11 @@
+<!-- chat/templates/chat/base.html -->
+<nav>
+   {% if user.is_authenticated %}
+       <a href="{% url 'chat:home' %}">Home</a> |
+       <a href="{% url 'chat:logout' %}">Logout</a>
+   {% else %}
+       <a href="{% url 'chat:login' %}">Login</a> |
+       <a href="{% url 'chat:signup' %}">Sign Up</a>
+   {% endif %}
+</nav>
+{% block content %}{% endblock content %}

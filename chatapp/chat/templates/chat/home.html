@@ -1,0 +1,20 @@
+<!-- chat/templates/chat/home.html -->
+ {% extends "chat/base.html" %}
+ {% block content %}
+ <h2>Available Chat Rooms</h2>
+ {% if chat_rooms %}
+<ul>
+    {% for room in chat_rooms %}
+        <li>
+            <a href="{% if room.user1 == request.user %} {% url 'chat:chat_room' room.user2.username %}{% else %} {% url 'chat:chat_room' room.user1.username %}{% endif %}">
+                Chat with {% if room.user1 == request.user %}{{ room.user2.username}}{% else %} {{room.user1.username}}{% endif %} 
+                {% if room.user1 == request.user and room.user2 == request.user %}
+                  (Self)
+                {% endif %}
+            </a>
+        </li>
+    {% endfor %}
+</ul>
+{% endif %}
+ {% endblock content %}
+

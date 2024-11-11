@@ -1,0 +1,42 @@
+<!-- chat/templates/chat/room.html -->
+{% extends "chat/base.html" %}
+{% block content %}
+<h2>Chat with {{ receiver.username }}</h2>
+<p>Status: <span id="status">{% if is_online %}Online {% else %} Offline{% endif %}</span></p>
+
+<div id="chat-log">
+    {% for message in messages %}
+        <p><strong>{{ message.sender.username }}</strong>: {{ message.content }}</p>
+    {% endfor %}
+</div>
+
+<input id="chat-message-input" type="text" size="100">
+<button id="chat-message-submit">Send</button>
+
+
+<!-- chat/templates/chat/room.html -->
+<script>
+   const chatSocket = new WebSocket(
+       `ws://${window.location.host}/ws/chat/{{ receiver.username }}/`
+   );
+
+   chatSocket.onmessage = function(e) {
+       const data = JSON.parse(e.data);
+       if (data.status && data.username) {
+           // Update online/offline status
+           document.querySelector('#status').innerText = data.status;
+       } else if (data.type === 'message') {
+           // Display received message
+           document.querySelector('#chat-log').innerHTML += `<p><strong>${data.sender}</strong>: ${data.message}</p>`;
+       }
+   };
+
+   document.querySelector('#chat-message-submit').onclick = function() {
+       const messageInputDom = document.querySelector('#chat-message-input');
+       const message = messageInputDom.value;
+       chatSocket.send(JSON.stringify({ 'message': message }));
+       messageInputDom.value = '';
+   };
+</script>
+
+{% endblock content %}
