@@ -1,20 +1,35 @@
 <!-- chat/templates/chat/room.html -->
 {% extends "chat/base.html" %}
-{% block content %}
-<h2>Chat with {{ receiver.username }}</h2>
-<p>Status: <span id="status">{% if is_online %}Online {% else %} Offline{% endif %}</span></p>
 
-<div id="chat-log">
-    {% for message in messages %}
-        <p><strong>{{ message.sender.username }}</strong>: {{ message.content }}</p>
-    {% endfor %}
+{% block content %}
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h2 class="h5 mb-0">Chat with {{ receiver.username }}</h2>
+            <p class="mb-0">Status: 
+                <span id="status" class="badge {% if is_online %}bg-success{% else %}bg-secondary{% endif %}">
+                    {% if is_online %}Online{% else %}Offline{% endif %}
+                </span>
+            </p>
+        </div>
+        
+        <div class="card-body" id="chat-log" style="height: 400px; overflow-y: auto;">
+            {% for message in messages %}
+                <div class="d-flex {% if message.sender == request.user %}justify-content-end{% else %}justify-content-start{% endif %} mb-2">
+                    <div class="p-2 rounded {% if message.sender == request.user %}bg-primary text-white{% else %}bg-light text-dark{% endif %}">
+                        <strong>{{ message.sender.username }}</strong>: {{ message.content }}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <div class="card-footer d-flex">
+            <input id="chat-message-input" type="text" class="form-control me-2" placeholder="Type a message...">
+            <button id="chat-message-submit" class="btn btn-primary">Send</button>
+        </div>
+    </div>
 </div>
 
-<input id="chat-message-input" type="text" size="100">
-<button id="chat-message-submit">Send</button>
-
-
-<!-- chat/templates/chat/room.html -->
 <script>
    const chatSocket = new WebSocket(
        `ws://${window.location.host}/ws/chat/{{ receiver.username }}/`
@@ -24,19 +39,41 @@
        const data = JSON.parse(e.data);
        if (data.status && data.username) {
            // Update online/offline status
-           document.querySelector('#status').innerText = data.status;
+           const statusElement = document.querySelector('#status');
+           statusElement.innerText = data.status;
+           statusElement.className = 'badge ' + (data.status === 'Online' ? 'bg-success' : 'bg-secondary');
        } else if (data.type === 'message') {
-           // Display received message
-           document.querySelector('#chat-log').innerHTML += `<p><strong>${data.sender}</strong>: ${data.message}</p>`;
+           // Append message
+           const chatLog = document.querySelector('#chat-log');
+           const isSender = data.sender === "{{ request.user.username }}";
+           const messageClass = isSender ? 'bg-primary text-white justify-content-end' : 'bg-light text-dark justify-content-start';
+           const messageHtml = `
+               <div class="d-flex ${isSender ? 'justify-content-end' : 'justify-content-start'} mb-2">
+                   <div class="p-2 rounded ${isSender ? 'bg-primary text-white' : 'bg-light text-dark'}">
+                       <strong>${data.sender}</strong>: ${data.message}
+                   </div>
+               </div>
+           `;
+           chatLog.innerHTML += messageHtml;
+           chatLog.scrollTop = chatLog.scrollHeight;
        }
    };
 
    document.querySelector('#chat-message-submit').onclick = function() {
        const messageInputDom = document.querySelector('#chat-message-input');
-       const message = messageInputDom.value;
-       chatSocket.send(JSON.stringify({ 'message': message }));
-       messageInputDom.value = '';
+       const message = messageInputDom.value.trim();
+       if (message) {
+           chatSocket.send(JSON.stringify({ 'message': message }));
+           messageInputDom.value = '';
+       }
    };
+
+   // Allow pressing "Enter" to send a message
+   document.querySelector('#chat-message-input').addEventListener('keyup', function(event) {
+       if (event.key === 'Enter') {
+           document.querySelector('#chat-message-submit').click();
+       }
+   });
 </script>
 
 {% endblock content %}

@@ -12,7 +12,6 @@ from .forms import SignUpForm
 def home(request):
     # Fetch all rooms involving the logged-in user
     chat_rooms = ChatRoom.objects.filter(user1=request.user) | ChatRoom.objects.filter(user2=request.user)
-    print(chat_rooms)
     return render(request, 'chat/home.html', {'chat_rooms': chat_rooms})
 
 @login_required

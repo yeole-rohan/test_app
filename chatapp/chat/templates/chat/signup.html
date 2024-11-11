@@ -1,8 +1,25 @@
 <!-- chat/templates/chat/signup.html -->
-<h2>Sign Up</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Sign Up</button>
-</form>
-<p>Already have an account? <a href="{% url 'chat:login' %}">Login here</a>.</p>
+{% extends "chat/base.html" %}
+{% block content %}
+
+<div class="container mt-5">
+   <div class="row justify-content-center">
+       <div class="col-md-6">
+           <h2 class="mb-4 text-center">Sign Up</h2>
+           
+           <form method="post" class="card p-4 shadow-sm">
+               {% csrf_token %}
+               
+               <!-- Render the form fields with Bootstrap styling -->
+               {{ form.as_p }}
+               
+               <button type="submit" class="btn btn-primary w-100 mt-3">Sign Up</button>
+           </form>
+           
+           <p class="text-center mt-3">Already have an account? 
+               <a href="{% url 'chat:login' %}">Login here</a>.
+           </p>
+       </div>
+   </div>
+</div>
+{% endblock %}
